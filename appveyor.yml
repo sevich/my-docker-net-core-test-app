@@ -5,8 +5,6 @@ pull_requests:
 branches:
   only:
   - master
-configuration: Release
-platform: Any CPU
 init:
 - cmd: git config --global core.autocrlf true
 environment:
