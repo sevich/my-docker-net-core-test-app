@@ -36,7 +36,6 @@ namespace AspNetCoreSpa.Server.Controllers.api
             _logger = loggerFactory.CreateLogger<AccountController>();
         }
 
-
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody]LoginViewModel model)
@@ -44,6 +43,7 @@ namespace AspNetCoreSpa.Server.Controllers.api
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, set lockoutOnFailure: true
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+
             if (result.Succeeded)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
@@ -51,10 +51,12 @@ namespace AspNetCoreSpa.Server.Controllers.api
                 _logger.LogInformation(1, "User logged in.");
                 return AppUtils.SignIn(user, roles);
             }
+
             if (result.RequiresTwoFactor)
             {
                 return RedirectToAction(nameof(SendCode), new { RememberMe = model.RememberMe });
             }
+
             if (result.IsLockedOut)
             {
                 _logger.LogWarning(2, "User account locked out.");
@@ -65,7 +67,6 @@ namespace AspNetCoreSpa.Server.Controllers.api
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return BadRequest(ModelState.GetModelErrors());
             }
-
         }
 
         [HttpPost("register")]
@@ -81,6 +82,7 @@ namespace AspNetCoreSpa.Server.Controllers.api
             };
             
             var result = await _userManager.CreateAsync(currentUser, model.Password);
+
             if (result.Succeeded)
             {
                 // Add to roles
@@ -97,6 +99,7 @@ namespace AspNetCoreSpa.Server.Controllers.api
                     return Json(new { });
                 }
             }
+
             AddErrors(result);
             // If we got this far, something failed, redisplay form
             return BadRequest(ModelState.GetModelErrors());
@@ -128,7 +131,9 @@ namespace AspNetCoreSpa.Server.Controllers.api
             {
                 return Render(ExternalLoginStatus.Error);
             }
+
             var info = await _signInManager.GetExternalLoginInfoAsync();
+
             if (info == null)
             {
                 return Render(ExternalLoginStatus.Invalid);
@@ -136,15 +141,18 @@ namespace AspNetCoreSpa.Server.Controllers.api
 
             // Sign in the user with this external login provider if the user already has a login.
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+
             if (result.Succeeded)
             {
                 _logger.LogInformation(5, "User logged in with {Name} provider.", info.LoginProvider);
                 return Render(ExternalLoginStatus.Ok); // Everything Ok, login user
             }
+
             if (result.RequiresTwoFactor)
             {
                 return Render(ExternalLoginStatus.TwoFactor);
             }
+
             if (result.IsLockedOut)
             {
                 return Render(ExternalLoginStatus.Lockout);
@@ -167,12 +175,15 @@ namespace AspNetCoreSpa.Server.Controllers.api
         {
             // Get the information about the user from the external login provider
             var info = await _signInManager.GetExternalLoginInfoAsync();
+
             if (info == null)
             {
                 return BadRequest("External login information cannot be accessed, try again.");
             }
+
             var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
             var result = await _userManager.CreateAsync(user);
+
             if (result.Succeeded)
             {
                 result = await _userManager.AddLoginAsync(user, info);
@@ -183,8 +194,10 @@ namespace AspNetCoreSpa.Server.Controllers.api
                     return Ok(); // Everything ok
                 }
             }
+
             return BadRequest(new[] { "Email already exists" });
         }
+
         [HttpGet("ConfirmEmail")]
         [AllowAnonymous]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
@@ -193,11 +206,14 @@ namespace AspNetCoreSpa.Server.Controllers.api
             {
                 return View("Error");
             }
+
             var user = await _userManager.FindByIdAsync(userId);
+
             if (user == null)
             {
                 return View("Error");
             }
+
             var result = await _userManager.ConfirmEmailAsync(user, code);
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
@@ -214,6 +230,7 @@ namespace AspNetCoreSpa.Server.Controllers.api
         public async Task<IActionResult> ForgotPassword([FromBody]ForgotPasswordViewModel model)
         {
             var currentUser = await _userManager.FindByNameAsync(model.Email);
+
             if (currentUser == null || !(await _userManager.IsEmailConfirmedAsync(currentUser)))
             {
                 // Don't reveal that the user does not exist or is not confirmed
@@ -241,11 +258,14 @@ namespace AspNetCoreSpa.Server.Controllers.api
                 // Don't reveal that the user does not exist
                 return Ok("Reset confirmed");
             }
+
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
+
             if (result.Succeeded)
             {
                 return Ok("Reset confirmed"); ;
             }
+
             AddErrors(result);
             return BadRequest(ModelState.GetModelErrors());
         }
@@ -255,10 +275,12 @@ namespace AspNetCoreSpa.Server.Controllers.api
         public async Task<ActionResult> SendCode(string returnUrl = null, bool rememberMe = false)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+
             if (user == null)
             {
                 return BadRequest("Error");
             }
+
             var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
             return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
@@ -269,6 +291,7 @@ namespace AspNetCoreSpa.Server.Controllers.api
         public async Task<IActionResult> SendCode([FromBody]SendCodeViewModel model)
         {
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+
             if (user == null)
             {
                 return BadRequest("Error");
@@ -276,12 +299,14 @@ namespace AspNetCoreSpa.Server.Controllers.api
 
             // Generate the token and send it
             var code = await _userManager.GenerateTwoFactorTokenAsync(user, model.SelectedProvider);
+
             if (string.IsNullOrWhiteSpace(code))
             {
                 return BadRequest("Error");
             }
 
             var message = "Your security code is: " + code;
+
             if (model.SelectedProvider == "Email")
             {
                 await _emailSender.SendEmailAsync(MailType.SecurityCode, new EmailModel { }, null);
@@ -301,10 +326,12 @@ namespace AspNetCoreSpa.Server.Controllers.api
         {
             // Require that the user has already logged in via username/password or external login
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+
             if (user == null)
             {
                 return BadRequest("Error");
             }
+
             return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
@@ -317,10 +344,12 @@ namespace AspNetCoreSpa.Server.Controllers.api
             // If a user enters incorrect codes for a specified amount of time then the user account
             // will be locked out for a specified amount of time.
             var result = await _signInManager.TwoFactorSignInAsync(model.Provider, model.Code, model.RememberMe, model.RememberBrowser);
+
             if (result.Succeeded)
             {
                 return RedirectToLocal(model.ReturnUrl);
             }
+
             if (result.IsLockedOut)
             {
                 _logger.LogWarning(7, "User account locked out.");
@@ -364,7 +393,6 @@ namespace AspNetCoreSpa.Server.Controllers.api
         {
             return RedirectToAction("Index", "Home", new { externalLoginStatus = (int)status });
         }
-
 
         #endregion
     }

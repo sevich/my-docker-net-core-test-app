@@ -24,8 +24,7 @@ namespace AspNetCoreSpa.Server.Controllers
         {
             ViewBag.MainDotJs = await GetMainDotJs();
 
-            if (Request.Query.ContainsKey("emailConfirmCode") &&
-                Request.Query.ContainsKey("userId"))
+            if (Request.Query.ContainsKey("emailConfirmCode") && Request.Query.ContainsKey("userId"))
             {
                 var userId = Request.Query["userId"].ToString();
                 var code = Request.Query["emailConfirmCode"].ToString();
@@ -73,6 +72,5 @@ namespace AspNetCoreSpa.Server.Controllers
                 .Where(f => _env.IsDevelopment() ? f.Name == "main.js" : f.Name.StartsWith("main.") && !f.Name.EndsWith("bundle.map"));
             return file.FirstOrDefault().Name;
         }
-
     }
 }
