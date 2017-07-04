@@ -1,3 +1,6 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/en2p0gkcw1lv6ytk?svg=true)](https://ci.appveyor.com/project/SergiyEvich/my-docker-net-core-test-app)
+[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+
 ## Features
 
 * [ASP.NET Core](http://www.dot.net/)
