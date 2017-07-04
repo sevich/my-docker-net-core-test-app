@@ -24,7 +24,7 @@
 * Token based authentication using [Openiddict](https://github.com/openiddict/openiddict-core)
      * Get public key acess using: http://localhost:5000/.well-known/jwks
 * Extensible User/Role identity implementation
-* Various social login support, Follow [this](https://github.com/asadsahi/AspNetCoreSpa/wiki/Social-Login-Setup) wiki page to see how it will work.
+* Various social login support, Follow [this](https://github.com/sevich/AspNetCoreSpa/wiki/Social-Login-Setup) wiki page to see how it will work.
 * Lazy loading with pre loading all modules for fast navigation.
 * [Angular dynamic forms](https://angular.io/docs/ts/latest/cookbook/dynamic-form.html) for reusability and to keep html code DRY.
 * [Serilog](https://serilog.net/) with [Seq](https://getseq.net/) support to manage structured logging.
@@ -41,7 +41,7 @@
 ## Installation
 ```
 1. Clone the repo
-    git clone https://github.com/asadsahi/AspNetCoreSpa
+    git clone https://github.com/sevich/AspNetCoreSpa
 2. Change directory to our repo
     cd AspNetCoreSpa
 3. dotnet restore
